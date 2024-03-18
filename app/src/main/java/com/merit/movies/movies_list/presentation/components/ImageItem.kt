@@ -1,5 +1,6 @@
 package com.merit.movies.movies_list.presentation.components
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ImageNotSupported
@@ -25,6 +27,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import com.merit.movies.movies_list.data.remote.MovieApi
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun ImageItem(
     url: String
@@ -61,7 +64,7 @@ fun ImageItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(6.dp)
-                    .height(250.dp)
+                    .width(348.dp)
                     .clip(RoundedCornerShape(22.dp)),
                 painter = imageState.painter,
                 contentDescription = "images of the movie",

@@ -8,6 +8,7 @@
     <string name="release_date">"Release Date: "</string>
     <string name="votes">" Votes"</string>
     <string name="overview">Overview</string>
-    <string name="pics_movie">More Pictures:</string>
+    <string name="recommendations">Recommendations</string>
+    <string name="pics_movie">More Pictures</string>
     <string name="view_trailer">View Trailer</string>
 </resources>

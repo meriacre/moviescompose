@@ -108,5 +108,33 @@ class MovieListRepositoryImpl @Inject constructor(
 
     }
 
+    override suspend fun getMovieRecommendations(id: Int, page: Int): Flow<Resource<List<Movie>>> {
+        return flow {
+            emit(Resource.Loading(true))
+            val movieListFromApi = try {
+                movieApi.getMovieRecommendations(id, page)
+            } catch (e: IOException) {
+                e.printStackTrace()
+                emit(Resource.Error(message = "Error loading movies"))
+                return@flow
+            } catch (e: HttpException) {
+                e.printStackTrace()
+                emit(Resource.Error(message = "Error loading movies"))
+                return@flow
+            } catch (e: Exception) {
+                e.printStackTrace()
+                emit(Resource.Error(message = "Error loading movies"))
+                return@flow
+            }
+
+            emit(Resource.Success(
+                movieListFromApi.results.let { it.map{
+                    it.toMovie("recommendation")
+                } }
+            ))
+            emit(Resource.Loading(false))
+        }
+    }
+
 
 }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -54,6 +55,9 @@ import com.merit.movies.R
 import com.merit.movies.movies_list.data.remote.MovieApi
 import com.merit.movies.movies_list.domain.model.Movie
 import com.merit.movies.movies_list.presentation.components.ImageItem
+import com.merit.movies.movies_list.presentation.components.MovieItem
+import com.merit.movies.movies_list.presentation.popular.MovieListUiEvent
+import com.merit.movies.movies_list.util.Category
 import com.merit.movies.movies_list.util.RatingBar
 
 @Composable
@@ -62,6 +66,7 @@ fun MovieScreen(navHostController: NavHostController) {
     val movieVideosState = detailsViewModel.movieVideoState.collectAsState().value
     val movieImagesState = detailsViewModel.movieImagesState.collectAsState().value
     val movieState = detailsViewModel.detailsState.collectAsState().value
+    val movieRecommendedMovieListState = detailsViewModel.movieRecommendedListState.collectAsState().value
 //    detailsViewModel.detailsState.value.movie.
 //    var showDialog by remember { mutableStateOf(false) }
 
@@ -236,7 +241,7 @@ fun MovieScreen(navHostController: NavHostController) {
 
                     Text(
                         modifier = Modifier.padding(start = 16.dp),
-                        text = movie.release_date + stringResource(R.string.votes)
+                        text = movie.vote_count.toString() + stringResource(R.string.votes)
                     )
                     Spacer(modifier = Modifier.height(10.dp))
 
@@ -255,7 +260,7 @@ fun MovieScreen(navHostController: NavHostController) {
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             modifier = Modifier.padding(start = 16.dp),
@@ -268,7 +273,7 @@ fun MovieScreen(navHostController: NavHostController) {
 
         movieState.movie?.let {
             Text(
-                modifier = Modifier.padding(start = 16.dp, bottom = 28.dp),
+                modifier = Modifier.padding(start = 16.dp, bottom = 8.dp),
                 text = it.overview,
                 fontSize = 14.sp,
                 maxLines = Int.MAX_VALUE,
@@ -277,7 +282,7 @@ fun MovieScreen(navHostController: NavHostController) {
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             modifier = Modifier.padding(start = 16.dp),
@@ -319,7 +324,56 @@ fun MovieScreen(navHostController: NavHostController) {
             }
         }
 
-        Spacer(modifier = Modifier.height(46.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            modifier = Modifier.padding(start = 16.dp),
+            text = stringResource(R.string.recommendations),
+            fontSize = 19.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // here will be horizontal list with similar movies
+        if (movieRecommendedMovieListState.recommendedMovieList.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Box( modifier = Modifier
+                .fillMaxWidth()
+                .padding(6.dp)
+                .height(360.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center) {
+                LazyHorizontalGrid(
+                    rows = GridCells.Fixed(1),
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 8.dp, horizontal = 4.dp)
+                ) {
+                    items(movieRecommendedMovieListState.recommendedMovieList.size) { index ->
+                        MovieItem(
+                            movie = movieRecommendedMovieListState.recommendedMovieList[index],
+                            navHostController = navHostController
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        if (index >= movieRecommendedMovieListState.recommendedMovieList.size - 1 && !movieRecommendedMovieListState.isLoading) {
+                            detailsViewModel.onEvent(DetailUiEvent.Paginate)
+                        }
+
+                    }
+                }
+            }
+        }
+
+
+        Spacer(modifier = Modifier.height(56.dp))
     }
 
 }

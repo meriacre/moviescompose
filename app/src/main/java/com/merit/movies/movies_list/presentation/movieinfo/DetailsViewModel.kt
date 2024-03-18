@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merit.movies.movies_list.domain.model.Movie
 import com.merit.movies.movies_list.domain.repository.MovieListRepository
+import com.merit.movies.movies_list.presentation.popular.MovieListUiEvent
 import com.merit.movies.movies_list.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,6 +28,9 @@ class DetailsViewModel @Inject constructor(
     private var _movieImagesState = MutableStateFlow(MovieImagesState())
     val movieImagesState = _movieImagesState.asStateFlow()
 
+    private var _movieRecommendedState = MutableStateFlow(RecommendedMovieListState())
+    val movieRecommendedListState = _movieRecommendedState.asStateFlow()
+
     fun setDetailsState(movie: Movie) {
         if (detailsState.value.movie == null) {
             _detailsState.update {
@@ -37,6 +41,7 @@ class DetailsViewModel @Inject constructor(
             }
             getMovie()
             getMoviePictures()
+            getMovieRecommendation()
         }
 
     }
@@ -54,6 +59,15 @@ class DetailsViewModel @Inject constructor(
             it.copy(
                 videoTime = time
             )
+        }
+    }
+
+    fun onEvent(event: DetailUiEvent) {
+        when (event) {
+            is DetailUiEvent.Paginate -> {
+                if (movieRecommendedListState.value.recommendedMovieList)
+                getMovieRecommendation()
+            }
         }
     }
 
@@ -123,6 +137,46 @@ class DetailsViewModel @Inject constructor(
         }
 
     }
-
 }
+
+    private fun getMovieRecommendation() {
+        viewModelScope.launch {
+
+            _movieRecommendedState.update {
+                it.copy(isLoading = true)
+            }
+
+            detailsState.value.movie?.let {
+                movieListRepository.getMovieRecommendations(it.id, movieRecommendedListState.value.recommendedMovieListPage).collectLatest { result ->
+                    when (result) {
+                        is Resource.Error -> {
+                            _movieRecommendedState.update {
+                                it.copy(isLoading = false)
+                            }
+                        }
+
+                        is Resource.Success -> {
+                            result.data?.let { popularList ->
+                                _movieRecommendedState.update {
+
+                                    it.copy(
+
+                                        recommendedMovieList = movieRecommendedListState.value.recommendedMovieList
+                                                + popularList.shuffled(),
+                                        recommendedMovieListPage = movieRecommendedListState.value.recommendedMovieListPage + 1
+                                    )
+                                }
+                            }
+                        }
+
+                        is Resource.Loading -> {
+                            _movieRecommendedState.update {
+                                it.copy(isLoading = result.isLoading)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
